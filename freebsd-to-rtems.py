@@ -382,10 +382,15 @@ class ModuleManager:
 			'CFLAGS += -MT $@ -MD -MP -MF $(basename $@).d\n' \
 			'NEED_DUMMY_PIC_IRQ=yes\n' \
 			'\n' \
-			'GENERATED_FILES =\n' \
+                        '# do nothing default so sed on rtems-bsd-config.h always works.\n' \
+                        'SED_PATTERN += -e \'s/^//\'\n' \
+			'GENERATED_FILES = rtemsbsd/freebsd/machine/rtems-bsd-config.h\n' \
 			'\n'
 		data += 'C_FILES =\n'
 		for m in self.modules:
+			if m.conditionalOn != "none":
+				data += 'ifneq ($(' + m.conditionalOn + '),yes)\n'
+
 			for file in m.sourceFiles:
 				data += 'C_FILES += ' + file.getMakefileFragment() + '\n'
 			for cpu, files in sorted(m.cpuDependentSourceFiles.items()):
@@ -395,6 +400,10 @@ class ModuleManager:
 				if cpu in ("arm", "i386", "lm32", "mips", "powerpc", "sparc"):
 					data += 'NEED_DUMMY_PIC_IRQ=no\n'
 				data += 'endif\n'
+			if m.conditionalOn != "none":
+				data += 'else\n'
+				data += 'SED_PATTERN += -e \'' + m.cppPattern +'\'\n'
+				data += 'endif # ' + m.conditionalOn +'\n'
 		for cpu in CPUsNeedingGenericIncksum:
 			data += 'ifeq ($(RTEMS_CPU), ' + cpu + ')\n' \
 				'GENERATED_FILES += copied/rtemsbsd/' + cpu + '/' + cpu + '/in_cksum.c\n' \
@@ -420,15 +429,18 @@ class ModuleManager:
 			'\n' \
 			'LIB = libbsd.a\n' \
 			'\n' \
-			'all: $(GENERATED_FILES) $(LIB) lib_user\n' \
+			'all: $(LIB) lib_user\n' \
 			'\n' \
-			'$(LIB): $(C_O_FILES)\n' \
+			'$(LIB): $(GENERATED_FILES) $(C_O_FILES)\n' \
 			'\t$(AR) rcu $@ $^\n' \
 			'\n' \
 			'lib_user: $(LIB) install_bsd\n' \
 			'\t$(MAKE) -C freebsd-userspace\n' \
 			'\n' \
 			'# The following targets use the MIPS Generic in_cksum routine\n'
+		data += 'rtemsbsd/freebsd/machine/rtems-bsd-config.h: rtemsbsd/freebsd/machine/rtems-bsd-config.h.in\n'
+		data += '\tsed $(SED_PATTERN) <$< >$@\n'
+		data += '\n'
 		for cpu in CPUsNeedingGenericIncksum:
 			dDir = 'copied/rtemsbsd/' + cpu + '/' + cpu + '/'
 			sDir = 'freebsd/mips/mips/'
@@ -481,6 +493,10 @@ class ModuleManager:
 			'\tinstall -c -m 644 $(LIB) $(INSTALL_BASE)\n' \
 			'\tcd rtemsbsd; for i in `find freebsd -name \'*.h\'` ; do \\\n' \
 			'\t  install -c -m 644 -D "$$i" "$(INSTALL_BASE)/include/$$i" ; done\n' \
+			'\tcd contrib/altq; for i in `find freebsd -name \'*.h\'` ; do \\\n' \
+			'\t  install -c -m 644 -D "$$i" "$(INSTALL_BASE)/include/$$i" ; done\n' \
+			'\tcd contrib/pf; for i in `find freebsd -name \'*.h\'` ; do \\\n' \
+                        '\t  install -c -m 644 -D "$$i" "$(INSTALL_BASE)/include/$$i" ; done\n' \
 			'\tfor i in `find freebsd -name \'*.h\' | $(CPU_SED)` ; do \\\n' \
 			'\t  install -c -m 644 -D "$$i" "$(INSTALL_BASE)/include/$$i" ; done\n' \
 			'\t-cd freebsd/$(RTEMS_CPU)/include && for i in `find . -name \'*.h\'` ; do \\\n' \
@@ -530,6 +546,8 @@ def assertSourceFile(path):
 class Module:
 	def __init__(self, name):
 		self.name = name
+		self.conditionalOn = "none"
+		self.cppPattern = "s///"
 		self.headerFiles = []
 		self.sourceFiles = []
 		self.cpuDependentSourceFiles = {}
@@ -641,7 +659,7 @@ rtems.addRTEMSSourceFiles(
 		'src/rtems-bsd-log.c',
 		'src/rtems-bsd-sx.c',
 		'src/rtems-bsd-rwlock.c',
-		'src/rtems-bsd-generic.c',
+		#'src/rtems-bsd-generic.c',
 		'src/rtems-bsd-page.c',
 		'src/rtems-bsd-panic.c',
 		'src/rtems-bsd-synch.c',
@@ -693,13 +711,13 @@ rtems.addEmptyHeaderFiles(
 		'sys/cpuset.h',
 		'sys/exec.h',
 		'sys/fail.h',
-		'sys/limits.h',
+		#'sys/limits.h',
 		'sys/sleepqueue.h',
 		'sys/namei.h',
 		'sys/_pthreadtypes.h',
 		#'sys/resourcevar.h',
 		'sys/sched.h',
-		'sys/select.h',
+		#'sys/select.h',
 		'sys/syscallsubr.h',
 		'sys/sysent.h',
 		'sys/syslimits.h',
@@ -707,7 +725,7 @@ rtems.addEmptyHeaderFiles(
 		'sys/stat.h',
 		#'sys/time.h',
 		'time.h',
-		'sys/timespec.h',
+		#'sys/timespec.h',
 		'sys/_timeval.h',
 		#'sys/vmmeter.h',
 		#'sys/vnode.h',
@@ -1148,7 +1166,6 @@ devUsbBase.addHeaderFiles(
 		'sys/bus_dma.h',
 		'sys/bus.h',
 		'sys/callout.h',
-		'sys/cdefs.h',
 		'sys/condvar.h',
 		'sys/conf.h',
 		#'sys/cpuset.h',
@@ -1162,7 +1179,8 @@ devUsbBase.addHeaderFiles(
 		'sys/file.h',
 		'sys/filio.h',
 		'sys/ioccom.h',
-		'sys/_iovec.h',
+		# FreeBSD version is in RTEMS since used by readv/writev
+		# 'sys/_iovec.h',
 		'sys/kernel.h',
 		'sys/kobj.h',
 		'sys/kthread.h',
@@ -1201,8 +1219,6 @@ devUsbBase.addHeaderFiles(
 		'sys/_semaphore.h',
 		'sys/selinfo.h',
 		'sys/sigio.h',
-		'sys/signal.h',
-		'sys/signalvar.h',
 		'sys/_sigset.h',
 		#'sys/sleepqueue.h',
 		'sys/socket.h',
@@ -1217,7 +1233,8 @@ devUsbBase.addHeaderFiles(
 		'sys/types.h',
 		'sys/ucontext.h',
 		'sys/ucred.h',
-		'sys/uio.h',
+		# FreeBSD version is in RTEMS since used by readv/writev
+		# 'sys/uio.h',
 		'sys/aio.h',
 		'sys/unistd.h',
 		'sys/vmmeter.h',
@@ -1319,6 +1336,24 @@ devNic.addHeaderFiles(
 		'dev/pci/pcib_private.h',
 		'isa/isavar.h',
 		'isa/pnpvar.h',
+		'netatalk/at.h',
+		'netatalk/endian.h',
+		'netatalk/aarp.h',
+		'netatalk/at_extern.h',
+		'netatalk/at_var.h',
+		'netatalk/ddp.h',
+		'netatalk/ddp_pcb.h',
+		'netatalk/ddp_var.h',
+		'netatalk/phase2.h',
+		'sys/mman.h',
+		'sys/buf.h',
+		'sys/mqueue.h',
+		'sys/tty.h',
+		'sys/ttyqueue.h',
+		'sys/ttydisc.h',
+		'sys/ttydevsw.h',
+		'sys/ttyhook.h',
+		'sys/user.h',
 	]
 )
 
@@ -1377,6 +1412,17 @@ devNic.addSourceFiles(
 		'dev/led/led.c',
 		'kern/subr_unit.c',
 		'dev/pci/pci_pci.c',
+		'netatalk/aarp.c',
+		'netatalk/at_control.c',
+		'netatalk/at_rmx.c',
+		'netatalk/ddp_input.c',
+		'netatalk/ddp_pcb.c',
+		'netatalk/ddp_usrreq.c',
+		'netatalk/at_proto.c',
+		'netatalk/ddp_output.c',
+		'kern/sys_generic.c',
+		'kern/kern_descrip.c',
+		'kern/kern_mtxpool.c',
 	]
 )
 
@@ -1636,7 +1682,6 @@ net.addSourceFiles(
 		'net/if_mib.c',
 		'net/if_spppfr.c',
 		'net/if_spppsubr.c',
-		'net/if_stf.c',
 		'net/if_tap.c',
 		'net/if_tun.c',
 		'net/if_vlan.c',
@@ -1827,6 +1872,8 @@ netinet.addSourceFiles(
 )
 
 netinet6 = Module('netinet6')
+netinet6.conditionalOn = "DISABLE_IPV6"
+netinet6.cppPattern = 's/^\#define INET6 1/\/\/ \#define INET6 1/'
 netinet6.addHeaderFiles(
 	[
 		'netinet6/icmp6.h',
@@ -1855,6 +1902,7 @@ netinet6.addHeaderFiles(
 )
 netinet6.addSourceFiles(
 	[
+		'net/if_stf.c',
 		'netinet6/dest6.c',
 		'netinet6/frag6.c',
 		'netinet6/icmp6.c',

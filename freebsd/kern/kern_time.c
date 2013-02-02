@@ -177,6 +177,7 @@ struct clock_gettime_args {
 	struct	timespec *tp;
 };
 #endif
+#ifndef __rtems__
 /* ARGSUSED */
 int
 clock_gettime(struct thread *td, struct clock_gettime_args *uap)
@@ -190,7 +191,9 @@ clock_gettime(struct thread *td, struct clock_gettime_args *uap)
 
 	return (error);
 }
+#endif
 
+#ifndef __rtems__
 int
 kern_clock_gettime(struct thread *td, clockid_t clock_id, struct timespec *ats)
 {
@@ -253,6 +256,7 @@ kern_clock_gettime(struct thread *td, clockid_t clock_id, struct timespec *ats)
 	}
 	return (0);
 }
+#endif
 
 #ifndef _SYS_SYSPROTO_HH_
 struct clock_settime_args {
@@ -260,6 +264,7 @@ struct clock_settime_args {
 	const struct	timespec *tp;
 };
 #endif
+#ifndef __rtems__
 /* ARGSUSED */
 int
 clock_settime(struct thread *td, struct clock_settime_args *uap)
@@ -289,6 +294,7 @@ kern_clock_settime(struct thread *td, clockid_t clock_id, struct timespec *ats)
 	error = settime(td, &atv);
 	return (error);
 }
+#endif
 
 #ifndef _SYS_SYSPROTO_HH_
 struct clock_getres_args {
@@ -296,6 +302,7 @@ struct clock_getres_args {
 	struct	timespec *tp;
 };
 #endif
+#ifndef __rtems__
 int
 clock_getres(struct thread *td, struct clock_getres_args *uap)
 {
@@ -353,6 +360,7 @@ kern_clock_getres(struct thread *td, clockid_t clock_id, struct timespec *ts)
 	}
 	return (0);
 }
+#endif
 
 static int nanowait;
 
@@ -690,6 +698,7 @@ realitexpire(void *arg)
 	}
 	/*NOTREACHED*/
 }
+#endif /* __rtems__ */
 
 /*
  * Check that a proposed value to load into the .it_value or
@@ -708,6 +717,7 @@ itimerfix(struct timeval *tv)
 	return (0);
 }
 
+#ifndef __rtems__
 /*
  * Decrement an interval timer by a specified number
  * of microseconds, which must be less than a second,
@@ -748,6 +758,7 @@ expire:
 		itp->it_value.tv_usec = 0;		/* sec is already 0 */
 	return (0);
 }
+#endif /* __rtems__ */
 
 /*
  * Add and subtract routines for timevals.
@@ -764,7 +775,6 @@ timevaladd(struct timeval *t1, const struct timeval *t2)
 	t1->tv_usec += t2->tv_usec;
 	timevalfix(t1);
 }
-#endif /* __rtems__ */
 
 void
 timevalsub(struct timeval *t1, const struct timeval *t2)

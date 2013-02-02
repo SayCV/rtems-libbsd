@@ -262,6 +262,7 @@
 #define hid_report_size _bsd_hid_report_size
 #define hid_start_parse _bsd_hid_start_parse
 #define hogticks _bsd_hogticks
+#define ipsec_set_policy _bsd_ipsec_set_policy
 #define kernel_sysctl _bsd_kernel_sysctl
 #define kobj_class_compile _bsd_kobj_class_compile
 #define kobj_class_compile_static _bsd_kobj_class_compile_static
@@ -342,9 +343,7 @@
 #define _sx_xlock _bsd__sx_xlock
 #define sx_xlocked _bsd_sx_xlocked
 #define _sx_xunlock _bsd__sx_xunlock
-#define sysctl _bsd_sysctl
 #define sysctl_add_oid _bsd_sysctl_add_oid
-#define sysctlbyname _bsd_sysctlbyname
 #define sysctl_ctx_entry_add _bsd_sysctl_ctx_entry_add
 #define sysctl_ctx_entry_del _bsd_sysctl_ctx_entry_del
 #define sysctl_ctx_entry_find _bsd_sysctl_ctx_entry_find

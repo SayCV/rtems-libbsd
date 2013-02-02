@@ -17,7 +17,9 @@ CFLAGS += -std=gnu99
 CFLAGS += -MT $@ -MD -MP -MF $(basename $@).d
 NEED_DUMMY_PIC_IRQ=yes
 
-GENERATED_FILES =
+# do nothing default so sed on rtems-bsd-config.h always works.
+SED_PATTERN += -e 's/^//'
+GENERATED_FILES = rtemsbsd/freebsd/machine/rtems-bsd-config.h
 
 C_FILES =
 C_FILES += rtemsbsd/dev/usb/controller/ohci_lpc24xx.c
@@ -35,7 +37,6 @@ C_FILES += rtemsbsd/src/rtems-bsd-lock.c
 C_FILES += rtemsbsd/src/rtems-bsd-log.c
 C_FILES += rtemsbsd/src/rtems-bsd-sx.c
 C_FILES += rtemsbsd/src/rtems-bsd-rwlock.c
-C_FILES += rtemsbsd/src/rtems-bsd-generic.c
 C_FILES += rtemsbsd/src/rtems-bsd-page.c
 C_FILES += rtemsbsd/src/rtems-bsd-panic.c
 C_FILES += rtemsbsd/src/rtems-bsd-synch.c
@@ -92,7 +93,6 @@ C_FILES += freebsd/net/if_media.c
 C_FILES += freebsd/net/if_mib.c
 C_FILES += freebsd/net/if_spppfr.c
 C_FILES += freebsd/net/if_spppsubr.c
-C_FILES += freebsd/net/if_stf.c
 C_FILES += freebsd/net/if_tap.c
 C_FILES += freebsd/net/if_tun.c
 C_FILES += freebsd/net/if_vlan.c
@@ -195,6 +195,8 @@ C_FILES += freebsd/netinet/libalias/alias_proxy.c
 C_FILES += freebsd/netinet/libalias/alias.c
 C_FILES += freebsd/netinet/libalias/alias_skinny.c
 C_FILES += freebsd/netinet/libalias/alias_sctp.c
+ifneq ($(DISABLE_IPV6),yes)
+C_FILES += freebsd/net/if_stf.c
 C_FILES += freebsd/netinet6/dest6.c
 C_FILES += freebsd/netinet6/frag6.c
 C_FILES += freebsd/netinet6/icmp6.c
@@ -222,6 +224,9 @@ C_FILES += freebsd/netinet6/route6.c
 C_FILES += freebsd/netinet6/scope6.c
 C_FILES += freebsd/netinet6/sctp6_usrreq.c
 C_FILES += freebsd/netinet6/udp6_usrreq.c
+else
+SED_PATTERN += -e 's/^\#define INET6 1/\/\/ \#define INET6 1/'
+endif # DISABLE_IPV6
 C_FILES += freebsd/netipsec/ipsec.c
 C_FILES += freebsd/netipsec/ipsec_input.c
 C_FILES += freebsd/netipsec/ipsec_mbuf.c
@@ -391,6 +396,17 @@ C_FILES += freebsd/kern/subr_bufring.c
 C_FILES += freebsd/dev/led/led.c
 C_FILES += freebsd/kern/subr_unit.c
 C_FILES += freebsd/dev/pci/pci_pci.c
+C_FILES += freebsd/netatalk/aarp.c
+C_FILES += freebsd/netatalk/at_control.c
+C_FILES += freebsd/netatalk/at_rmx.c
+C_FILES += freebsd/netatalk/ddp_input.c
+C_FILES += freebsd/netatalk/ddp_pcb.c
+C_FILES += freebsd/netatalk/ddp_usrreq.c
+C_FILES += freebsd/netatalk/at_proto.c
+C_FILES += freebsd/netatalk/ddp_output.c
+C_FILES += freebsd/kern/sys_generic.c
+C_FILES += freebsd/kern/kern_descrip.c
+C_FILES += freebsd/kern/kern_mtxpool.c
 ifeq ($(RTEMS_CPU), i386)
 C_FILES += freebsd/i386/pci/pci_bus.c
 C_FILES += freebsd/i386/i386/legacy.c
@@ -642,15 +658,18 @@ C_D_FILES = $(C_FILES:%.c=%.d)
 
 LIB = libbsd.a
 
-all: $(GENERATED_FILES) $(LIB) lib_user
+all: $(LIB) lib_user
 
-$(LIB): $(C_O_FILES)
+$(LIB): $(GENERATED_FILES) $(C_O_FILES)
 	$(AR) rcu $@ $^
 
 lib_user: $(LIB) install_bsd
 	$(MAKE) -C freebsd-userspace
 
 # The following targets use the MIPS Generic in_cksum routine
+rtemsbsd/freebsd/machine/rtems-bsd-config.h: rtemsbsd/freebsd/machine/rtems-bsd-config.h.in
+	sed $(SED_PATTERN) <$< >$@
+
 copied/rtemsbsd/avr/avr/in_cksum.c: freebsd/mips/mips/in_cksum.c
 	test -d copied/rtemsbsd/avr/avr/ || mkdir -p copied/rtemsbsd/avr/avr/
 	cp $< $@
@@ -992,6 +1011,10 @@ install_bsd: $(LIB)
 	install -d $(INSTALL_BASE)/include
 	install -c -m 644 $(LIB) $(INSTALL_BASE)
 	cd rtemsbsd; for i in `find freebsd -name '*.h'` ; do \
+	  install -c -m 644 -D "$$i" "$(INSTALL_BASE)/include/$$i" ; done
+	cd contrib/altq; for i in `find freebsd -name '*.h'` ; do \
+	  install -c -m 644 -D "$$i" "$(INSTALL_BASE)/include/$$i" ; done
+	cd contrib/pf; for i in `find freebsd -name '*.h'` ; do \
 	  install -c -m 644 -D "$$i" "$(INSTALL_BASE)/include/$$i" ; done
 	for i in `find freebsd -name '*.h' | $(CPU_SED)` ; do \
 	  install -c -m 644 -D "$$i" "$(INSTALL_BASE)/include/$$i" ; done
