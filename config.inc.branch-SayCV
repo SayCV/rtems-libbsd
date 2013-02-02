@@ -1,9 +1,9 @@
 # Define your CPU here:
+CPU=arm
 #CPU=i386
 #CPU=ppc
 #CPU=m68k
 #CPU=h8300
-CPU=arm
 
 # Define the location of the rtem installation:
 RTEMS_VER=4.11
