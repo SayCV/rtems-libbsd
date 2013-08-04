@@ -1,4 +1,4 @@
-include config.inc.branch-SayCV
+include config.inc
 
 include $(RTEMS_MAKEFILE_PATH)/Makefile.inc
 include $(RTEMS_CUSTOM)
