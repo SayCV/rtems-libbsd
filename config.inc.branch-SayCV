@@ -21,3 +21,5 @@ BSP=SayCV_SAM9X25
 #INSTALL_BASE = ${HOME}/newbsd/install
 RTEMS_MAKEFILE_PATH=$(RTEMS_BASE)/$(CPU)-rtemseabi$(RTEMS_VER)/$(BSP)
 INSTALL_BASE = /opt/rtems-$(RTEMS_VER)-demos
+
+DISABLE_IPV6=yes
