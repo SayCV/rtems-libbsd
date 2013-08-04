@@ -1,10 +1,31 @@
+Index: newlib/libc/include/pthread.h
+===================================================================
+RCS file: /cvs/src/src/newlib/libc/include/pthread.h,v
+retrieving revision 1.9
+diff -u -r1.9 pthread.h
+--- include/pthread.h	8 Dec 2010 14:44:06 -0000	1.9
++++ include/pthread.h	24 Oct 2012 20:32:47 -0000
+@@ -328,6 +328,13 @@
+ 
+ #if defined(_POSIX_READER_WRITER_LOCKS)
+ 
++/* This is used to statically initialize a pthread_rwlock_t. Example:
++  
++    pthread_mutex_t mutex = PTHREAD_RWLOCK_INITIALIZER;
++ */
++
++#define PTHREAD_RWLOCK_INITIALIZER  ((pthread_rwlock_t) 0xFFFFFFFF)
++
+ int	_EXFUN(pthread_rwlockattr_init, (pthread_rwlockattr_t *__attr));
+ int	_EXFUN(pthread_rwlockattr_destroy, (pthread_rwlockattr_t *__attr));
+ int	_EXFUN(pthread_rwlockattr_getpshared,
 Index: newlib/libc/include/sys/cdefs.h
 ===================================================================
 RCS file: /cvs/src/src/newlib/libc/include/sys/cdefs.h,v
 retrieving revision 1.2
 diff -u -r1.2 cdefs.h
---- newlib/libc/include/sys/cdefs.h	3 Mar 2011 10:37:08 -0000	1.2
-+++ newlib/libc/include/sys/cdefs.h	24 Oct 2012 20:32:47 -0000
+--- include/sys/cdefs.h	3 Mar 2011 10:37:08 -0000	1.2
++++ include/sys/cdefs.h	24 Oct 2012 20:32:47 -0000
 @@ -1,8 +1,4 @@
 -/* libc/sys/linux/sys/cdefs.h - Helper macros for K&R vs. ANSI C compat. */
 -
@@ -657,8 +678,8 @@ Index: newlib/libc/include/sys/features.h
 RCS file: /cvs/src/src/newlib/libc/include/sys/features.h,v
 retrieving revision 1.27
 diff -u -r1.27 features.h
---- newlib/libc/include/sys/features.h	20 Jul 2011 19:41:15 -0000	1.27
-+++ newlib/libc/include/sys/features.h	24 Oct 2012 20:32:47 -0000
+--- include/sys/features.h	20 Jul 2011 19:41:15 -0000	1.27
++++ include/sys/features.h	24 Oct 2012 20:32:47 -0000
 @@ -28,9 +28,10 @@
  /* RTEMS adheres to POSIX -- 1003.1b with some features from annexes.  */
  
@@ -689,8 +710,8 @@ Index: newlib/libc/include/sys/signal.h
 RCS file: /cvs/src/src/newlib/libc/include/sys/signal.h,v
 retrieving revision 1.21
 diff -u -r1.21 signal.h
---- newlib/libc/include/sys/signal.h	8 Aug 2012 11:04:16 -0000	1.21
-+++ newlib/libc/include/sys/signal.h	24 Oct 2012 20:32:47 -0000
+--- include/sys/signal.h	8 Aug 2012 11:04:16 -0000	1.21
++++ include/sys/signal.h	24 Oct 2012 20:32:47 -0000
 @@ -101,6 +101,15 @@
  #define sa_sigaction  _signal_handlers._sigaction
  #endif
@@ -718,3 +739,23 @@ diff -u -r1.21 signal.h
  #if defined(_POSIX_THREADS)
  #ifdef __CYGWIN__
  #  ifndef _CYGWIN_TYPES_H
+Index: newlib/libc/sys/rtems/machine/param.h
+===================================================================
+RCS file: /cvs/src/src/newlib/libc/sys/rtems/machine/param.h,v
+retrieving revision 1.4
+diff -u -r1.4 param.h
+--- rtems/machine/param.h	16 Dec 2009 21:35:51 -0000	1.4
++++ rtems/machine/param.h	24 Oct 2012 20:32:47 -0000
+@@ -56,7 +56,12 @@
+  * of the hardware page size.
+  */
+ #ifndef	MSIZE
++/* This increased from the old RTEMS TCP/IP stack to the FreeBSD 8.x one */
++#ifdef __NEW_RTEMS_BSD__
++#define MSIZE		256		/* size of an mbuf */
++#else
+ #define MSIZE		128		/* size of an mbuf */
++#endif
+ #endif	/* MSIZE */
+ 
+ #ifndef	MCLSHIFT
