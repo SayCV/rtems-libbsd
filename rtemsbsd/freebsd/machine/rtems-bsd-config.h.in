@@ -69,9 +69,11 @@
 #include <rtems/score/statesimpl.h>
 #include <rtems/score/threadqimpl.h>
 #include <rtems/score/watchdogimpl.h>
+#include <rtems/rtems/semimpl.h>
+#include <rtems/rtems/attrimpl.h>
 #include <rtems/posix/condimpl.h>
 #include <rtems/posix/psignalimpl.h>
-
+#include <rtems/posix/rwlockimpl.h>
 
 #ifndef _RTEMS_BSD_BSD_HH_
 /* Ensure that we can use POSIX threads */

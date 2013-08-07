@@ -12,7 +12,7 @@ include $(RTEMS_SHARE)/make/directory.cfg
 SUBDIRS  = swi01
 SUBDIRS += timeout01
 # USB Tests
-SUBDIRS += usb01 
+#SUBDIRS += usb01 
 
 # Network Tests
 SUBDIRS += init01
