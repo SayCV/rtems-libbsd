@@ -37,6 +37,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <malloc.h>
+typedef	__uint32_t	__socklen_t;
 #include <netdb.h>
 #include <stdarg.h>
 #include <stdio.h>
