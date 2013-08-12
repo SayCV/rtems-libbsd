@@ -73,6 +73,7 @@ __END_DECLS
 int rtems_rpc_task_init (void);
 int rtems_rpc_start_portmapper (int priority);
 
+#define _RTEMS_RPC_INTERNAL_
 #ifdef _RTEMS_RPC_INTERNAL_
 /*
  * Multi-threaded support

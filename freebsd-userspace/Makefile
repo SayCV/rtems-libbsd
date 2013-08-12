@@ -323,14 +323,14 @@ commands/sbin/route/keywords.h: commands/sbin/route/keywords
 
 # lib/libc/net Yacc and lex files
 lib/libc/net/nslexer.c: lib/libc/net/nslexer.l
-	cd lib/libc/net && flex nslexer.l
+	make -C lib/libc/net nslexer.c
 
 lib/libc/net/nsparser.c: lib/libc/net/nsparser.y
 	make -C lib/libc/net nsparser.c
 
 # libipsec Yacc and lex files
 lib/libipsec/policy_token.c: lib/libipsec/policy_token.l
-	cd lib/libipsec && flex policy_token.l
+	make -C lib/libipsec policy_token.c
 
 lib/libipsec/policy_parse.c: lib/libipsec/policy_parse.y
 	make -C lib/libipsec policy_parse.c

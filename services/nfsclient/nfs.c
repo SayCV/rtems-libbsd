@@ -68,6 +68,7 @@
 #include <assert.h>
 #include <sys/stat.h>
 #include <dirent.h>
+typedef	__uint32_t	__socklen_t;
 #include <netdb.h>
 #include <ctype.h>
 #include <netinet/in.h>

@@ -1,12 +1,6 @@
-#include <freebsd/machine/rtems-bsd-config.h>
-
-/* $NetBSD: in_cksum.c,v 1.7 1997/09/02 13:18:15 thorpej Exp $ */
-
-/*-
+/*
  * Copyright (c) 1988, 1992, 1993
  *	The Regents of the University of California.  All rights reserved.
- * Copyright (c) 1996
- *	Matt Thomas <matt@3am-software.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -16,10 +10,6 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *	This product includes software developed by the University of
- *	California, Berkeley and its contributors.
  * 4. Neither the name of the University nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
@@ -39,116 +29,157 @@
  *	@(#)in_cksum.c	8.1 (Berkeley) 6/10/93
  */
 
+#include <freebsd/machine/rtems-bsd-config.h>
+
 #include <freebsd/sys/cdefs.h>			/* RCS ID & Copyright macro defns */
 __FBSDID("$FreeBSD$");
 
 #include <freebsd/sys/param.h>
 #include <freebsd/sys/mbuf.h>
-#include <freebsd/sys/systm.h>
-#include <freebsd/netinet/in_systm.h>
-#include <freebsd/netinet/in.h>
-#include <freebsd/netinet/ip.h>
-#include <freebsd/machine/in_cksum.h>
 
 /*
- * Checksum routine for Internet Protocol family headers
- *    (Portable Alpha version).
+ *  Try to use a CPU specific version, then punt to the portable C one.
+ */
+
+
+#if (defined(__GNUC__) && (defined(__arm__) && !defined(__thumb__)))
+
+/* This currently does not support Thumb assembly */
+#include "in_cksum_arm.h"
+
+#elif (defined(__GNUC__) && defined(__i386__))
+
+#include "in_cksum_i386.h"
+
+#elif (defined(__GNUC__) && (defined(__mc68000__) || defined(__m68k__)))
+
+#include "in_cksum_m68k.h"
+#elif (defined(__GNUC__) && defined(__PPC__))
+
+#include "in_cksum_powerpc.h"
+
+#elif (defined(__GNUC__) && defined(__nios2__))
+
+#include "in_cksum_nios2.h"
+
+#elif (defined(__GNUC__) && defined(__sparc__))
+
+#include "in_cksum_sparc.h"
+
+#else
+
+#include <stdio.h> /* for puts */
+
+/*
+ * Checksum routine for Internet Protocol family headers (Portable Version).
  *
  * This routine is very heavily used in the network
  * code and should be modified for each CPU to be as fast as possible.
  */
 
-#define ADDCARRY(x)  (x > 65535 ? x -= 65535 : x)
-#define REDUCE32							  \
-    {									  \
-	q_util.q = sum;							  \
-	sum = q_util.s[0] + q_util.s[1] + q_util.s[2] + q_util.s[3];	  \
-    }
-#define REDUCE16							  \
-    {									  \
-	q_util.q = sum;							  \
-	l_util.l = q_util.s[0] + q_util.s[1] + q_util.s[2] + q_util.s[3]; \
-	sum = l_util.s[0] + l_util.s[1];				  \
-	ADDCARRY(sum);							  \
-    }
+#define ADDCARRY(x)  (x > 65535L ? x -= 65535L : x)
+#define REDUCE \
+  {l_util.l = sum; sum = l_util.s[0] + l_util.s[1];  ADDCARRY(sum);}
 
-union l_util {
-	u_int16_t s[2];
-	u_int32_t l;
-};
-union q_util {
-	u_int16_t s[4];
-	u_int32_t l[2];
-	u_int64_t q;
-};
-
-u_short
-in_addword(u_short a, u_short b)
+int
+in_cksum(
+	struct mbuf *m,
+	uint32_t len )
 {
-	u_int64_t sum = a + b;
+	register u_short *w;
+	register int32_t sum = 0;
+	register int32_t mlen = 0;
+	int byte_swapped = 0;
 
-	ADDCARRY(sum);
-	return (sum);
-}
+	union {
+		char	c[2];
+		u_short	s;
+	} s_util;
+	union {
+		u_short s[2];
+		long	l;
+	} l_util;
 
-static
-uint64_t _do_cksum(void *addr, int len)
-{
-	uint64_t sum;
-	union q_util q_util;
-
-	sum = do_cksum(addr, len);
-	REDUCE32;
-	return (sum);
-}
-
-u_short
-in_cksum_skip(struct mbuf *m, int len, int skip)
-{
-	u_int64_t sum = 0;
-	int mlen = 0;
-	int clen = 0;
-	caddr_t addr;
-	union q_util q_util;
-	union l_util l_util;
-
-        len -= skip;
-        for (; skip && m; m = m->m_next) {
-                if (m->m_len > skip) {
-                        mlen = m->m_len - skip;
-			addr = mtod(m, caddr_t) + skip;
-                        goto skip_start;
-                } else {
-                        skip -= m->m_len;
-                }
-        }
-
-	for (; m && len; m = m->m_next) {
+	for (;m && len; m = m->m_next) {
 		if (m->m_len == 0)
 			continue;
-		mlen = m->m_len;
-		addr = mtod(m, caddr_t);
-skip_start:
+		w = mtod(m, u_short *);
+		if (mlen == -1) {
+			/*
+			 * The first byte of this mbuf is the continuation
+			 * of a word spanning between this mbuf and the
+			 * last mbuf.
+			 *
+			 * s_util.c[0] is already saved when scanning previous
+			 * mbuf.
+			 */
+			s_util.c[1] = *(char *)w;
+			sum += s_util.s;
+			w = (u_short *)((char *)w + 1);
+			mlen = m->m_len - 1;
+			len--;
+		} else
+			mlen = m->m_len;
 		if (len < mlen)
 			mlen = len;
-
-		if ((clen ^ (int) addr) & 1)
-		    sum += _do_cksum(addr, mlen) << 8;
-		else
-		    sum += _do_cksum(addr, mlen);
-
-		clen += mlen;
 		len -= mlen;
+		/*
+		 * Force to even boundary.
+		 */
+		if ((1 & (intptr_t) w) && (mlen > 0)) {
+			REDUCE;
+			sum <<= 8;
+			s_util.c[0] = *(u_char *)w;
+			w = (u_short *)((char *)w + 1);
+			mlen--;
+			byte_swapped = 1;
+		}
+		/*
+		 * Unroll the loop to make overhead from
+		 * branches &c small.
+		 */
+		while ((mlen -= 32) >= 0) {
+			sum += w[0]; sum += w[1]; sum += w[2]; sum += w[3];
+			sum += w[4]; sum += w[5]; sum += w[6]; sum += w[7];
+			sum += w[8]; sum += w[9]; sum += w[10]; sum += w[11];
+			sum += w[12]; sum += w[13]; sum += w[14]; sum += w[15];
+			w += 16;
+		}
+		mlen += 32;
+		while ((mlen -= 8) >= 0) {
+			sum += w[0]; sum += w[1]; sum += w[2]; sum += w[3];
+			w += 4;
+		}
+		mlen += 8;
+		if (mlen == 0 && byte_swapped == 0)
+			continue;
+		REDUCE;
+		while ((mlen -= 2) >= 0) {
+			sum += *w++;
+		}
+		if (byte_swapped) {
+			REDUCE;
+			sum <<= 8;
+			byte_swapped = 0;
+			if (mlen == -1) {
+				s_util.c[1] = *(char *)w;
+				sum += s_util.s;
+				mlen = 0;
+			} else
+				mlen = -1;
+		} else if (mlen == -1)
+			s_util.c[0] = *(char *)w;
 	}
-	REDUCE16;
+	if (len)
+		puts("cksum: out of data");
+	if (mlen == -1) {
+		/* The last mbuf has odd # of bytes. Follow the
+		   standard (the odd byte may be shifted left by 8 bits
+		   or not as determined by endian-ness of the machine) */
+		s_util.c[1] = 0;
+		sum += s_util.s;
+	}
+	REDUCE;
 	return (~sum & 0xffff);
 }
-
-u_int in_cksum_hdr(const struct ip *ip)
-{
-	u_int64_t sum = do_cksum(ip, sizeof(struct ip));
-	union q_util q_util;
-    	union l_util l_util;
-	REDUCE16;
-	return (~sum & 0xffff);
-}			    
+#endif

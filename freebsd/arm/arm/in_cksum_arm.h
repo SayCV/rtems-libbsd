@@ -138,6 +138,16 @@
 #define ADVANCE(n)	{w += n; mlen -= n;}
 #define ADVANCEML(n)	{mlen -= n;}
 
+union l_util {
+	u_int16_t s[2];
+	u_int32_t l;
+};
+union q_util {
+	u_int16_t s[4];
+	u_int32_t l[2];
+	u_int64_t q;
+};
+
 /*
  * IP header checksum routine for processors which don't have an inline version
  */
@@ -294,4 +304,47 @@ in4_cksum(
 		m = m->m_next;
 	}
 	return (in_cksum_internal(m, off, len, sum));
+}
+
+u_short
+in_cksum_skip(struct mbuf *m, int len, int skip)
+{
+	u_int64_t sum = 0;
+	int mlen = 0;
+	int clen = 0;
+	caddr_t addr;
+	union q_util q_util;
+	union l_util l_util;
+	register u_int tmp1=0, tmp2, tmp3, tmp4;
+
+        len -= skip;
+        for (; skip && m; m = m->m_next) {
+                if (m->m_len > skip) {
+                        mlen = m->m_len - skip;
+			addr = mtod(m, caddr_t) + skip;
+                        goto skip_start;
+                } else {
+                        skip -= m->m_len;
+                }
+        }
+
+	for (; m && len; m = m->m_next) {
+		if (m->m_len == 0)
+			continue;
+		mlen = m->m_len;
+		addr = mtod(m, caddr_t);
+skip_start:
+		if (len < mlen)
+			mlen = len;
+
+		if ((clen ^ (int) addr) & 1)
+		    sum += in_cksum(addr, mlen) << 8;
+		else
+		    sum += in_cksum(addr, mlen);
+
+		clen += mlen;
+		len -= mlen;
+	}
+	REDUCE;
+	return (~sum & 0xffff);
 }

@@ -7,7 +7,7 @@ CPU=arm
 
 # Define the location of the rtem installation:
 RTEMS_VER=4.11
-RTEMS_BASE=/opt/rtems-$(RTEMS_VER)
+RTEMS_BASE=/opt/rtems-$(RTEMS_VER)-V02-disable-networking
 
 # Define the object module format here:
 OMF=elf
