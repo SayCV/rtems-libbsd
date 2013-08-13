@@ -38,6 +38,7 @@
 #ifndef _SYS_SYSTM_HH_
 #define	_SYS_SYSTM_HH_
 
+#include <rtems/rtems_bsdnet_internal.h> /* for __BSD_VA_LIST__ */
 #include <freebsd/machine/atomic.h>
 #include <freebsd/machine/cpufunc.h>
 #include <freebsd/sys/callout.h>

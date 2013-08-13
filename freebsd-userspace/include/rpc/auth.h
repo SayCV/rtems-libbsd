@@ -189,7 +189,7 @@ typedef struct __auth {
 		int	(*ah_validate) (struct __auth *,
 			    struct opaque_auth *);
 		/* refresh credentials */
-		int	(*ah_refresh) (struct __auth *, void *);
+		int	(*ah_refresh) (struct __auth *);
 		/* destroy this structure */
 		void	(*ah_destroy) (struct __auth *);
 	} *ah_ops;
@@ -220,10 +220,10 @@ typedef struct __auth {
 #define auth_validate(auth, verfp)	\
 		((*((auth)->ah_ops->ah_validate))((auth), verfp))
 
-#define AUTH_REFRESH(auth, msg)		\
-		((*((auth)->ah_ops->ah_refresh))(auth, msg))
-#define auth_refresh(auth, msg)		\
-		((*((auth)->ah_ops->ah_refresh))(auth, msg))
+#define AUTH_REFRESH(auth)		\
+		((*((auth)->ah_ops->ah_refresh))(auth))
+#define auth_refresh(auth)		\
+		((*((auth)->ah_ops->ah_refresh))(auth))
 
 #define AUTH_DESTROY(auth)		\
 		((*((auth)->ah_ops->ah_destroy))(auth))
