@@ -142,6 +142,12 @@ typedef	__uid_t		uid_t;
 #endif
 
 /*
+ * RTEMS addition: get and set wakeup functions.
+ */
+#define SO_SNDWAKEUP	0x1020		/* wakeup when ready to send */
+#define SO_RCVWAKEUP	0x1021		/* wakeup when ready to receive */
+
+/*
  * Structure used for manipulating linger option.
  */
 struct linger {
@@ -155,6 +161,15 @@ struct accept_filter_arg {
 	char	af_arg[256-16];
 };
 #endif
+
+/*
+ * RTEMS addition: structure used to get and set wakeup function.
+ */
+struct socket;
+struct	sockwakeup {
+	void	(*sw_pfn)(struct socket *, void *);
+	void	*sw_arg;
+};
 
 /*
  * Level number for (get/set)sockopt() to apply to socket itself.

@@ -75,6 +75,7 @@ int rtems_rpc_start_portmapper (int priority);
 
 #define _RTEMS_RPC_INTERNAL_
 #ifdef _RTEMS_RPC_INTERNAL_
+#error 123
 /*
  * Multi-threaded support
  * Group all global and static variables into a single spot.

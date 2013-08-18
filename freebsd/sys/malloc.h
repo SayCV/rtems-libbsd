@@ -35,6 +35,7 @@
 #ifndef _SYS_MALLOC_HH_
 #define	_SYS_MALLOC_HH_
 
+#include <rtems/rtems_bsdnet_internal.h>  /* Ensure we get RTEMS malloc hooks */
 #include <freebsd/sys/param.h>
 #include <freebsd/sys/queue.h>
 #include <freebsd/sys/_lock.h>
