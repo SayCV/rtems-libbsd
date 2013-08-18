@@ -14,5 +14,5 @@ SUBDIRS += telnetd
 SUBDIRS += ftpd
 # client services
 SUBDIRS += ftpfs
-SUBDIRS += librpc
+# SUBDIRS += librpc
 # SUBDIRS += nfsclient
