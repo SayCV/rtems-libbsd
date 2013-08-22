@@ -1,4 +1,4 @@
-include ../../config.inc
+ include ../../config.inc
 
 include $(RTEMS_MAKEFILE_PATH)/Makefile.inc
 include $(RTEMS_CUSTOM)
@@ -30,9 +30,9 @@ $(LIB): $(C_O_FILES)
 
 install: $(LIB)
 	install -d $(INSTALL_BASE)/include/rtems
-	install -c -m 644 include/rtems/pty.h $(INSTALL_BASE)/rtems
-	install -c -m 644 include/rtems/telnetd.h $(INSTALL_BASE)/rtems
-	install -c -m 644 include/passwd.h $(INSTALL_BASE)/rtems
+	install -c -m 644 include/rtems/pty.h $(INSTALL_BASE)/include/rtems
+	install -c -m 644 include/rtems/telnetd.h $(INSTALL_BASE)/include/rtems
+	install -c -m 644 include/passwd.h $(INSTALL_BASE)/include/rtems
 	install -c -m 644 $(LIB) $(INSTALL_BASE)
 
 clean:
