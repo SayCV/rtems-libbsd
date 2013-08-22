@@ -39,8 +39,8 @@
  *
  * Copyright (C) 1984, Sun Microsystems, Inc.
  */
-#ifndef _RPC_RPC_H
-#define _RPC_RPC_H
+#ifndef _RPC_RTEMS_H
+#define _RPC_RTEMS_H
 
 #include <rpc/types.h>		/* some typedefs */
 #include <netinet/in.h>
@@ -73,9 +73,8 @@ __END_DECLS
 int rtems_rpc_task_init (void);
 int rtems_rpc_start_portmapper (int priority);
 
-#define _RTEMS_RPC_INTERNAL_
 #ifdef _RTEMS_RPC_INTERNAL_
-#error 123
+
 /*
  * Multi-threaded support
  * Group all global and static variables into a single spot.
@@ -115,4 +114,4 @@ extern struct _rtems_rpc_task_variables *rtems_rpc_task_variables;
 
 #endif /* _RTEMS_RPC_INTERNAL_ */
 
-#endif /* !_RPC_RPC_H */
+#endif /* !_RPC_RTEMS_H */

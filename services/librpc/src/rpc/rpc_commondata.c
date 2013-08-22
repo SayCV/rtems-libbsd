@@ -37,9 +37,15 @@ static char *rcsid = "$FreeBSD: src/lib/libc/rpc/rpc_commondata.c,v 1.7 1999/08/
 #endif
 
 #include <freebsd/bsd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <rpc/rpc.h>
+#include <rpc/types.h>
+#include <rpc/auth.h>
+#include <rpc/clnt.h>
 #ifdef __rtems__
-	#include <rpc/clnt.h>
+#include <rpc/rpc_rtems.h>
 #endif
 
 /*

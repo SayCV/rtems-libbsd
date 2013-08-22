@@ -10,7 +10,7 @@ CFLAGS += -w
 CFLAGS += -I include 
 CFLAGS += -std=gnu99
 CFLAGS += -D_RTEMS_RPC_INTERNAL_
-CFLAGS += -D_rtems_
+CFLAGS += -D__rtems__
 CFLAGS += -MT $@ -MD -MP -MF $(basename $@).d
 
 C_FILES =

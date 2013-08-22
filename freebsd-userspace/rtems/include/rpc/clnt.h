@@ -468,10 +468,7 @@ struct rpc_createerr {
 	struct rpc_err cf_error; /* useful when cf_stat == RPC_PMAPFAILURE */
 };
 
-__BEGIN_DECLS
-extern struct rpc_createerr	*__rpc_createerr(void);
-__END_DECLS
-#define rpc_createerr		(*(__rpc_createerr()))
+extern struct rpc_createerr rpc_createerr;
 
 /*
  * The simplified interface:

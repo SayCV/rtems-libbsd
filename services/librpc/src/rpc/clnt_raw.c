@@ -193,7 +193,7 @@ call_again:
 		}
 	}  /* end successful completion */
 	else {
-		if (AUTH_REFRESH(h->cl_auth, &msg))
+		if (AUTH_REFRESH(h->cl_auth))
 			goto call_again;
 	}  /* end of unsuccessful completion */
 

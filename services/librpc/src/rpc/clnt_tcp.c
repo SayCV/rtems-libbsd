@@ -331,7 +331,7 @@ call_again:
 	}  /* end successful completion */
 	else {
 		/* maybe our credentials need to be refreshed ... */
-		if (refreshes-- && AUTH_REFRESH(h->cl_auth, &reply_msg))
+		if (refreshes-- && AUTH_REFRESH(h->cl_auth))
 			goto call_again;
 	}  /* end of unsuccessful completion */
 	return (ct->ct_error.re_status);

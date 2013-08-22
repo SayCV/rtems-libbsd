@@ -389,7 +389,7 @@ send_again:
 		}  /* end successful completion */
 		else {
 			/* maybe our credentials need to be refreshed ... */
-			if (nrefreshes > 0 && AUTH_REFRESH(cl->cl_auth, &reply_msg)) {
+			if (nrefreshes > 0 && AUTH_REFRESH(cl->cl_auth)) {
 				nrefreshes--;
 				goto call_again;
 			}

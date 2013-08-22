@@ -80,6 +80,23 @@
 #include <string.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <freebsd/bsd.h>
+#include <rpc/types.h>
+#include <rpc/xdr.h>
+#include <rpc/pmap_prot.h>
+#include <sys/socket.h>
+#include <stdio.h>
+#include <unistd.h>
+#ifndef __rtems__
+	/* XXX old.. not new */
+	#include <sys/mbuf.h>
+#else
+	#include <freebsd/sys/mbuf.h>
+#endif
+#include <net/if.h>
+#include <sys/ioctl.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include "rpcio.h"
 
@@ -302,7 +319,7 @@ typedef union  RpcBufU_ {
 #ifdef MBUF_RX
 typedef	struct mbuf *		RxBuf;	/* an MBUF chain */
 static  void   				bufFree(struct mbuf **m);
-#define XID(ibuf) 			(*(mtod((ibuf), u_long *)))
+#define XID(ibuf) 			(*(mtod((ibuf), ulong *)))
 extern void 				xdrmbuf_create(XDR *, struct mbuf *, enum xdr_op);
 #else
 typedef RpcBuf				RxBuf;
@@ -1598,6 +1615,8 @@ RpcUdpXactPool pool;
  *             the RTEMS/BSDNET headers redefine those :-(
  */
 
+#include <freebsd/machine/rtems-bsd-config.h>
+#include <freebsd/sys/types.h>
 #define _KERNEL
 #include <sys/mbuf.h>
 
@@ -1778,7 +1797,7 @@ cleanup:
 }
 
 
-#include <rtems/rtems_bsdnet_internal.h>
+//#include <rtems/rtems_bsdnet_internal.h>
 /* double check the event configuration; should probably globally
  * manage system events!!
  * We do this at the end of the file for the same reason we had
