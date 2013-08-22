@@ -26,7 +26,7 @@ $(LIB): $(C_O_FILES)
 
 install: $(LIB)
 	install -d $(INSTALL_BASE)/include/rtems
-	install -c -m 644 ftpd.h $(INSTALL_BASE)/
+	install -c -m 644 ftpd.h $(INSTALL_BASE)/include/rtems
 	install -c -m 644 $(LIB) $(INSTALL_BASE)
 
 clean:
