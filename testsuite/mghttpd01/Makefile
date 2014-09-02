@@ -20,6 +20,7 @@ AM_CPPFLAGS += -I ${r}/testsuites/support/include
 LINK_LIBS += $(INSTALL_BASE)/libmghttpd.a
 LINK_LIBS += $(INSTALL_BASE)/libbsdc.a
 LINK_LIBS += $(INSTALL_BASE)/libbsd.a
+LINK_LIBS += -lc -lg -lm -lgcc -lgcov -lssp -lstdc++ -lsupc++
 
 include $(RTEMS_MAKEFILE_PATH)/Makefile.inc
 include $(RTEMS_CUSTOM)

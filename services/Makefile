@@ -15,4 +15,4 @@ SUBDIRS += ftpd
 # client services
 SUBDIRS += ftpfs
 SUBDIRS += librpc
-SUBDIRS += nfsclient
+#SUBDIRS += nfsclient

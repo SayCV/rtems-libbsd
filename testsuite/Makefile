@@ -18,3 +18,4 @@ SUBDIRS += timeout01
 SUBDIRS += init01
 SUBDIRS += netshell01
 SUBDIRS += loopback01
+SUBDIRS += mghttpd01
