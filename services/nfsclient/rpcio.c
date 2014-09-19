@@ -319,7 +319,7 @@ typedef union  RpcBufU_ {
 #ifdef MBUF_RX
 typedef	struct mbuf *		RxBuf;	/* an MBUF chain */
 static  void   				bufFree(struct mbuf **m);
-#define XID(ibuf) 			(*(mtod((ibuf), ulong *)))
+#define XID(ibuf) 			((mtod((ibuf), u_long *)))
 extern void 				xdrmbuf_create(XDR *, struct mbuf *, enum xdr_op);
 #else
 typedef RpcBuf				RxBuf;
