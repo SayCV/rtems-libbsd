@@ -1,4 +1,4 @@
-include ../../config.inc
+#include ../../config.inc
 
 include $(RTEMS_MAKEFILE_PATH)/Makefile.inc
 include $(RTEMS_CUSTOM)
@@ -10,7 +10,7 @@ CFLAGS += -w
 CFLAGS += -std=gnu99
 CFLAGS += -MT $@ -MD -MP -MF $(basename $@).d
 # CFLAGS += -DHAVE_MD5
-CFLAGS += -DNO_SSL -DNO_POPEN -DNO_CGI
+CFLAGS += -DNO_SSL -DNO_POPEN -DNO_CGI -DDEBUG
 
 C_FILES =
 C_FILES += mongoose.c

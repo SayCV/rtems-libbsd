@@ -7,7 +7,7 @@ CPU=arm
 
 # Define the location of the rtem installation:
 RTEMS_VER=4.11
-RTEMS_BASE=/opt/rtems-$(RTEMS_VER)-V02-disable-networking
+RTEMS_BASE=$(RTEMS_ROOT)
 
 # Define the object module format here:
 OMF=elf
@@ -19,7 +19,7 @@ BSP=SayCV_SAM9X25
 
 #RTEMS_MAKEFILE_PATH = ${HOME}/newbsd/bsp-install/powerpc-rtems4.11/psim/
 #INSTALL_BASE = ${HOME}/newbsd/install
-RTEMS_MAKEFILE_PATH=$(RTEMS_BASE)/$(CPU)-rtemseabi$(RTEMS_VER)/$(BSP)
+RTEMS_MAKEFILE_PATH=$(RTEMS_BASE)/$(CPU)-rtems$(RTEMS_VER)/$(BSP)
 INSTALL_BASE = /opt/rtems-$(RTEMS_VER)-demos
 
 DISABLE_IPV6=yes
